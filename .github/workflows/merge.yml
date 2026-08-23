@@ -41,9 +41,9 @@ jobs:
                           continue
                       if l.startswith("!") or l.startswith("["):
                           continue
-                      all_lines.add(l)
-              except Exception as e:
-                  print(f"⚠️ 拉取失败 {url}: {e}")
+                      all_lines.add(l)   # ⚠️ 注意：这里是小写字母 l，不是数字 1！
+                  except Exception as e:
+                      print(f"⚠️ 拉取失败 {url}: {e}")
 
           now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
           header = f"""! Title: 个人合并广告拦截规则
