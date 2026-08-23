@@ -1,8 +1,8 @@
 name: Merge Adblock Rules
 on:
   schedule:
-    - cron: '0 0 * * *' # UTC 0点 ≈ 北京时间早上8点自动执行
-  workflow_dispatch: # 支持手动点按钮运行
+    - cron: '0 0 * * *'   # UTC 0点 ≈ 北京时间早上8点自动执行
+  workflow_dispatch:      # 支持手动点按钮运行
 
 jobs:
   merge:
@@ -21,14 +21,14 @@ jobs:
           import requests
           from datetime import datetime
 
-          # 规则源列表，已删除重复链接
+          # 规则源列表（已去重）
           sources = [
-            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/changzhaoCZ/fqnovel-adrules/refs/heads/main/fqnovel-fxxk_ads",
-            "shturl.cc/xbw1O0Za9WUraw.gitmirror.com/TTDNS/Cat/main/TT%E6%8B%92%E7%BB%9D%E5%88%97%E8%A1%A8%E6%B8%85%E5%8D%95%20(%E6%9B%B4%E6%96%B0%E4%B8%AD).txt",
-            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/2771936993/HG/main/hg1.txt",
-            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/damengzhu/banad/main/jiekouAD.txt",
-            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/afwfv/DD-AD/main/rule/DD-AD.txt",
-            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/AWAvenue-Ads-Rule.txt"
+              "https://gh-proxy.com/raw.githubusercontent.com/changzhaoCZ/fqnovel-adrules/refs/heads/main/fqnovel-fxxk_ads",
+              "https://gh-proxy.com/raw.gitmirror.com/TTDNS/Cat/main/TT%E6%8B%92%E7%BB%9D%E5%88%97%E8%A1%A8%E6%B8%85%E5%8D%95%20(%E6%9B%B4%E6%96%B0%E4%B8%AD).txt",
+              "https://gh-proxy.com/raw.githubusercontent.com/2771936993/HG/main/hg1.txt",
+              "https://gh-proxy.com/raw.githubusercontent.com/damengzhu/banad/main/jiekouAD.txt",
+              "https://gh-proxy.com/raw.githubusercontent.com/afwfv/DD-AD/main/rule/DD-AD.txt",
+              "https://gh-proxy.com/raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/AWAvenue-Ads-Rule.txt"
           ]
 
           all_lines = set()
@@ -40,26 +40,25 @@ jobs:
                       l = line.strip()
                       if not l:
                           continue
-                      # 跳过注释、文件头部声明
-                      if l.startswith("!") or l.startswith("
-                              ):
-            continue
-        all_lines.add(l)
-    except Exception as e:
-        print(f"⚠️ 拉取失败 {url}: {e}")
+                      # 跳过注释和文件头（例如 ! 或 [Adblock Plus]）
+                      if l.startswith("!") or l.startswith("["):
+                          continue
+                      all_lines.add(l)
+              except Exception as e:
+                  print(f"⚠️ 拉取失败 {url}: {e}")
 
-now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
-header = f"""! Title: 个人合并广告拦截规则
-! Expires: 12 hours
-! Last Update: {now_time}
-! Auto merged from multiple ad rule sources
-"""
-content = header + "\n".join(sorted(all_lines))
-with open("merged.txt","w",encoding="utf-8") as f:
-    f.write(content)
-print(f"✅ 合并完成，共 {len(all_lines)} 条有效拦截规则")
-EOF
-python3 merge.py
+          now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+          header = f"""! Title: 个人合并广告拦截规则
+          ! Expires: 12 hours
+          ! Last Update: {now_time}
+          ! Auto merged from multiple ad rule sources
+          """
+          content = header + "\n".join(sorted(all_lines))
+          with open("merged.txt", "w", encoding="utf-8") as f:
+              f.write(content)
+          print(f"✅ 合并完成，共 {len(all_lines)} 条有效拦截规则")
+          EOF
+          python3 merge.py
 
       - name: Commit & Push merged.txt
         run: |
