@@ -42,3 +42,29 @@ jobs:
                           continue
                       # 跳过注释、文件头部声明
                       if l.startswith("!") or l.startswith("
+                              ):
+            continue
+        all_lines.add(l)
+    except Exception as e:
+        print(f"⚠️ 拉取失败 {url}: {e}")
+
+now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+header = f"""! Title: 个人合并广告拦截规则
+! Expires: 12 hours
+! Last Update: {now_time}
+! Auto merged from multiple ad rule sources
+"""
+content = header + "\n".join(sorted(all_lines))
+with open("merged.txt","w",encoding="utf-8") as f:
+    f.write(content)
+print(f"✅ 合并完成，共 {len(all_lines)} 条有效拦截规则")
+EOF
+python3 merge.py
+
+      - name: Commit & Push merged.txt
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+          git add merged.txt
+          git commit -m "🤖 Auto update merged ad rules" || echo "无变更，跳过提交"
+          git push
