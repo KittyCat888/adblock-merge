@@ -1,0 +1,44 @@
+name: Merge Adblock Rules
+on:
+  schedule:
+    - cron: '0 0 * * *' # UTC 0点 ≈ 北京时间早上8点自动执行
+  workflow_dispatch: # 支持手动点按钮运行
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python & requests
+        run: |
+          sudo apt-get install python3 python3-pip -y
+          pip3 install requests
+
+      - name: Merge adblock rules
+        run: |
+          cat > merge.py << 'EOF'
+          import requests
+          from datetime import datetime
+
+          # 规则源列表，已删除重复链接
+          sources = [
+            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/changzhaoCZ/fqnovel-adrules/refs/heads/main/fqnovel-fxxk_ads",
+            "shturl.cc/xbw1O0Za9WUraw.gitmirror.com/TTDNS/Cat/main/TT%E6%8B%92%E7%BB%9D%E5%88%97%E8%A1%A8%E6%B8%85%E5%8D%95%20(%E6%9B%B4%E6%96%B0%E4%B8%AD).txt",
+            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/2771936993/HG/main/hg1.txt",
+            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/damengzhu/banad/main/jiekouAD.txt",
+            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/afwfv/DD-AD/main/rule/DD-AD.txt",
+            "shturl.cc/xbw1O0Za9WUraw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/AWAvenue-Ads-Rule.txt"
+          ]
+
+          all_lines = set()
+          for url in sources:
+              try:
+                  resp = requests.get(url, timeout=25)
+                  resp.raise_for_status()
+                  for line in resp.text.splitlines():
+                      l = line.strip()
+                      if not l:
+                          continue
+                      # 跳过注释、文件头部声明
+                      if l.startswith("!") or l.startswith("
