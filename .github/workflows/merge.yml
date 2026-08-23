@@ -3,6 +3,7 @@ on:
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
+
 jobs:
   merge:
     runs-on: ubuntu-latest
@@ -10,13 +11,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - name: Install Python
+
+      - name: Install dependencies
+        run: pip3 install requests
+
+      - name: Run merge script
         run: |
-          sudo apt-get install python3 python3-pip -y
-          pip3 install requests
-      - name: Run Merge Script
-        run: |
-          cat > merge.py << 'EOF'
+          python3 << 'PY'
 import requests
 from datetime import datetime
 
@@ -38,7 +39,6 @@ for url in sources:
             l = line.strip()
             if not l:
                 continue
-            # 跳过注释、文件头部声明
             if l.startswith("!") or l.startswith("["):
                 continue
             all_lines.add(l)
@@ -56,12 +56,12 @@ content = header + "\n".join(sorted(all_lines))
 with open("merged.txt", "w", encoding="utf-8") as f:
     f.write(content)
 print(f"✅ 合并完成，共 {len(all_lines)} 条有效拦截规则")
-EOF
-          python3 merge.py
-      - name: Commit and push
+PY
+
+      - name: Commit & Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add merged.txt
-          git commit -m "Auto update merged rules" || echo "无变更"
+          git commit -m "Auto update merged rules" || true
           git push
